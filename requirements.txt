@@ -1,0 +1,14 @@
+os
+cv2
+streamlit
+numpy
+io
+PIL
+pdf2image
+azure.core.credentials
+azure.ai.formrecognizer
+azure.core.exceptions
+openai
+base64
+requests
+dotenv
