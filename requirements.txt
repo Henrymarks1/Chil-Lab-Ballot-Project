@@ -1,14 +1,10 @@
-os
-cv2
+opencv-python
 streamlit
 numpy
-io
-PIL
+Pillow
 pdf2image
-azure.core.credentials
+azure-core
 azure.ai.formrecognizer
-azure.core.exceptions
 openai
-base64
 requests
 dotenv
