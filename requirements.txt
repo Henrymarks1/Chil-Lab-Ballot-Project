@@ -7,4 +7,4 @@ azure-core
 azure.ai.formrecognizer
 openai
 requests
-dotenv
+python-dotenv
