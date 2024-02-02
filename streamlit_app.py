@@ -16,8 +16,8 @@ load_dotenv()
 
 
 # set up endpoint and key
-endpoint = os.environ.get('FORM_RECOGNIZER_ENDPOINT')
-key = os.environ.get('FORM_RECOGNIZER_KEY')
+endpoint = st.secrets['FORM_RECOGNIZER_ENDPOINT']
+key = st.secrets['FORM_RECOGNIZER_KEY']
 
 # define directories
 ballots_folder = "ballots"
@@ -85,7 +85,7 @@ def display_annotated_image(image_bytes, analyze_result):
 
 
 def gpt_groupings(ballot_image, ballot_text):
-    openai_api_key = os.getenv('OPENAI_KEY')
+    openai_api_key = st.secrets['OPENAI_KEY']
 
     assert isinstance(
         ballot_image, bytes), "ballot_image must be of type bytes"
