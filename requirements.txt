@@ -6,4 +6,4 @@ pdf2image
 azure-core
 azure.ai.formrecognizer
 requests
-cv2
+python-dotenv
