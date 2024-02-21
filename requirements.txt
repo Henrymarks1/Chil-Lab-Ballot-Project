@@ -7,3 +7,4 @@ azure-core
 azure.ai.formrecognizer
 requests
 python-dotenv
+cv2
