@@ -5,6 +5,5 @@ Pillow
 pdf2image
 azure-core
 azure.ai.formrecognizer
-openai
 requests
 python-dotenv
