@@ -8,13 +8,10 @@ from pdf2image import convert_from_path, convert_from_bytes
 from azure.core.credentials import AzureKeyCredential
 from azure.ai.formrecognizer import DocumentAnalysisClient
 from azure.core.exceptions import HttpResponseError
-import matplotlib.pyplot as plt
-# from openai import OpenAI
-import base64
-import requests
-from dotenv import load_dotenv
-load_dotenv()
-
+# import matplotlib.pyplot as plt
+# # from openai import OpenAI
+# import base64
+# import requests
 
 # set up endpoint and key
 endpoint = st.secrets['FORM_RECOGNIZER_ENDPOINT']
