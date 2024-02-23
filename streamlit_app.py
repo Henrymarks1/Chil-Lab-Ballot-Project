@@ -82,6 +82,15 @@ def display_annotated_image(image_bytes, analyze_result):
     return image
 
 
+#We need to take the list of contours and find the relevant boxes in this list. 
+#This might involve changing how we find contours (diff algo). 
+#We need to take edgepoints of interesections of countours and find the location of boxes.
+#Lucy and Henry work
+#Input: contours [x,y], 
+#Output: A list of boxes of points [[[p1], [p2], [p3], [p4]], [[p1], [p2], [p3], [p4]]] 
+def filter_contours(coutours):
+    return None
+    
 
 def analyze_document_opencv(image_bytes):
     # Convert bytes to numpy array
@@ -221,6 +230,11 @@ if uploaded_file or selected_example:
             # Use OpenCV to find and draw contours
             opencv_image, contours = analyze_document_opencv(content)
 
+
+            #filter contours -> Input contours, Output: A list of boxes of points [[[p1], [p2], [p3], [p4]], [[p1], [p2], [p3], [p4]]] 
+            # filter_contours(contours)
+            print(contours)
+
             # Display Azure's annotated image
             with st.spinner(f"Preparing annotated image for page {idx+1}..."):
                 annotated_image = display_annotated_image(content, azure_result)
@@ -237,7 +251,7 @@ if uploaded_file or selected_example:
 
                 lines = ""
                 line_counter = 1
-        # for page in result.pages:
+        # for page in azure_result.pages:
         #     for line in page.lines:
         #         #     st.write(line.content)
         #         lines += str(line_counter) + ": " + line.content + "\n"
@@ -245,10 +259,10 @@ if uploaded_file or selected_example:
 
         # groupings = gpt_groupings(content, lines)
         # st.header("GPT Groupings")
-        # st.write(groupings['choices'][0]['message']['content'])
+        # st.write(groupings['chois'][0]['message']['content'])
         # st.write(lines)
-        # for page in result.pages:
-        #     for line in page.lines:
-        #         st.write(line.content)
+        for page in azure_result.pages:
+            for line in page.lines:
+                st.write(line.content)
 
     st.write("----------------------------------------")
