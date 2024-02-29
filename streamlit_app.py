@@ -92,60 +92,42 @@ def filter_contours(coutours):
     return None
     
 
+
+
 def analyze_document_opencv(image_bytes):
     # Convert bytes to numpy array
     nparr = np.frombuffer(image_bytes, np.uint8)
     image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-
-    # Convert the image to grayscale
+    
+    # Convert to grayscale and apply Gaussian blur
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    # Apply Gaussian blur
-    blur = cv2.GaussianBlur(gray, (5, 5), 0)
-    # Apply adaptive threshold
-    thresh = cv2.adaptiveThreshold(blur, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-                                   cv2.THRESH_BINARY, 11, 2)
+    thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
 
-    # Find contours
-    max_area = 0
-    c = 0
-    contours, _ = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    # Kernel for horizontal lines
+    horizontal_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (15,1))
+    detected_horizontal_lines = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, horizontal_kernel, iterations=2)
 
-    for i in contours:
-        area = cv2.contourArea(i)
-        if area > 1000:
-            if area > max_area:
-                max_area = area
-                best_cnt = i
-                image = cv2.drawContours(image, contours, c, (0, 255, 0), 3)
-        c += 1
+    cnts_horizontal = cv2.findContours(detected_horizontal_lines, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    cnts_horizontal = cnts_horizontal[0] if len(cnts_horizontal) == 2 else cnts_horizontal[1]
 
-    # Create a mask to search only within these boundaries
-    mask = np.zeros((gray.shape), np.uint8)
-    cv2.drawContours(mask, [best_cnt], 0, 255, -1)
-    cv2.drawContours(mask, [best_cnt], 0, 0, 2)
+    for c in cnts_horizontal:
+        cv2.drawContours(image, [c], -1, (255, 255, 0), 3)
+    
+    # Kernel for vertical lines
+    vertical_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1,15))
+    detected_vertical_lines = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, vertical_kernel, iterations=2)
 
+    cnts_vertical = cv2.findContours(detected_vertical_lines, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    cnts_vertical = cnts_vertical[0] if len(cnts_vertical) == 2 else cnts_vertical[1]
 
-    # Cut away the identified mask from the image
-    out = np.zeros_like(gray)
-    out[mask == 255] = gray[mask == 255]
+    for c in cnts_vertical:
+        cv2.drawContours(image, [c], -1, (255,36,12), 3)
+    
+    return image, cnts_horizontal, cnts_vertical
 
 
-    # Apply blur and adaptive threshold to this new image
-    blur = cv2.GaussianBlur(out, (5,5), 0)
-    thresh = cv2.adaptiveThreshold(blur, 255, 1, 1, 11, 2)
 
 
-    # Find contours
-    contours, _ = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-
-    c = 0
-    for i in contours:
-        area = cv2.contourArea(i)
-        if area > 3000/2:
-            cv2.drawContours(image, contours, c, (0, 255, 0), 3)
-        c += 1
-
-    return image, contours
 
 
 # def gpt_groupings(ballot_image, ballot_text):
@@ -228,13 +210,12 @@ if uploaded_file or selected_example:
                     st.error(f"Failed to analyze page {idx+1} in document: {err.response.reason}")
 
             # Use OpenCV to find and draw contours
-            opencv_image, contours = analyze_document_opencv(content)
+            opencv_image, cnts_horizontal, cnts_vertical = analyze_document_opencv(content)
 
 
             #filter contours -> Input contours, Output: A list of boxes of points [[[p1], [p2], [p3], [p4]], [[p1], [p2], [p3], [p4]]] 
             # filter_contours(contours)
-            print(contours)
-
+        
             # Display Azure's annotated image
             with st.spinner(f"Preparing annotated image for page {idx+1}..."):
                 annotated_image = display_annotated_image(content, azure_result)
