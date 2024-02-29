@@ -88,8 +88,20 @@ def display_annotated_image(image_bytes, analyze_result):
 #Lucy and Henry work
 #Input: contours [x,y], 
 #Output: A list of boxes of points [[[p1], [p2], [p3], [p4]], [[p1], [p2], [p3], [p4]]] 
-def filter_contours(coutours):
-    return None
+def filter_contours(contour):
+    boxes = []
+    # find all boxes detected in the input contours
+    # how to find boxes? change into polygons?
+    perimeter = cv2.arcLength(contour, True)
+    # from reddit: .... a polygon with a huge number of edges; if you want to reduce it to a simple polygon (e.g. a pentagon), you'd use cv2.approxPolyDP which implements the Ramer-Douglas-Peucker algorithm.
+    # maybe we need this to differentiate between the random lines?
+    boxApprox = cv2.approxPolyDP(contour, 0.05 * perimeter, True)
+    # represent each box is represented by the coordinates of its four corners
+    box = cv2.boxPoints(boxApprox)
+    # convert into integer coordinates if needed
+    box = np.int0(box)
+    boxes.append(box)
+    return boxes
     
 
 def analyze_document_opencv(image_bytes):
