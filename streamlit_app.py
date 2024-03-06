@@ -106,7 +106,7 @@ def filter_contours(contour):
 
 
 
-def analyze_document_opencv(image_bytes):
+def analyze_document_opencv(image_bytes, min_horizontal_length=200, min_vertical_length=200):
     # Convert bytes to numpy array
     nparr = np.frombuffer(image_bytes, np.uint8)
     image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
@@ -123,7 +123,9 @@ def analyze_document_opencv(image_bytes):
     cnts_horizontal = cnts_horizontal[0] if len(cnts_horizontal) == 2 else cnts_horizontal[1]
 
     for c in cnts_horizontal:
-        cv2.drawContours(image, [c], -1, (255, 255, 0), 3)
+        x, y, w, h = cv2.boundingRect(c)
+        if w >= min_horizontal_length:  # Check if the width of the bounding box meets minimum length requirement
+            cv2.drawContours(image, [c], -1, (255, 255, 0), 3)
     
     # Kernel for vertical lines
     vertical_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1,15))
@@ -133,7 +135,9 @@ def analyze_document_opencv(image_bytes):
     cnts_vertical = cnts_vertical[0] if len(cnts_vertical) == 2 else cnts_vertical[1]
 
     for c in cnts_vertical:
-        cv2.drawContours(image, [c], -1, (255,36,12), 3)
+        x, y, w, h = cv2.boundingRect(c)
+        if h >= min_vertical_length:  # Check if the height of the bounding box meets minimum length requirement
+            cv2.drawContours(image, [c], -1, (255,36,12), 3)
     
     return image, cnts_horizontal, cnts_vertical
 
