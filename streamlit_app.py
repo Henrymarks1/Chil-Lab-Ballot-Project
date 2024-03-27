@@ -23,7 +23,7 @@ client = gspread.authorize(creds)
 
 sheet = client.open('CHIL Ballot Data').sheet1
 sheet.clear()
-data = [["Word", "X1", "Y1", "X2", "Y2", "X3", "Y3", "X4", "Y4"]]
+data = [["Word", "Center_X", "Center_Y", "Length", "Height"]]
 
 
 
@@ -164,7 +164,13 @@ def extract_words_and_coordinates(analyze_result):
             x2, y2 = word.polygon[1]
             x3, y3 = word.polygon[2]
             x4, y4 = word.polygon[3]
-            data.append([word_text, x1, y1, x2, y2, x3, y3, x4, y4])
+
+            center_x = (x1 + x2 + x3 + x4) / 4
+            center_y = (y1 + y2 + y3 + y4) / 4
+            length = ((x2 - x1)**2 + (y2 - y1)**2)**0.5
+            height = ((x4 - x1)**2 + (y4 - y1)**2)**0.5
+
+            data.append([word_text, center_x, center_y, length, height])
     return data
 
 
@@ -294,7 +300,7 @@ if uploaded_file or selected_example:
     # st.write("----------------------------------------")
 
     # Write data to Google Sheets
-    range = f'A1:I{len(data)}'
+    range = f'A1:E{len(data)}'
     sheet.update(range, data)
 
 
