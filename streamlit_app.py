@@ -2,6 +2,8 @@ import os
 import cv2
 import streamlit as st
 import numpy as np
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 from io import BytesIO
 from PIL import Image
 from pdf2image import convert_from_path, convert_from_bytes
@@ -12,6 +14,18 @@ from azure.core.exceptions import HttpResponseError
 # # from openai import OpenAI
 # import base64
 # import requests
+
+
+# Set up Google Sheets API
+scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
+creds = ServiceAccountCredentials.from_json_keyfile_name('ballot-parsing-865d0dd8b2a8.json', scope)
+client = gspread.authorize(creds)
+
+sheet = client.open('CHIL Ballot Data').sheet1
+sheet.clear()
+data = [["Word", "X1", "Y1", "X2", "Y2", "X3", "Y3", "X4", "Y4"]]
+
+
 
 # set up endpoint and key
 endpoint = st.secrets['FORM_RECOGNIZER_ENDPOINT']
@@ -142,6 +156,16 @@ def analyze_document_opencv(image_bytes, min_horizontal_length=200, min_vertical
     return image, cnts_horizontal, cnts_vertical
 
 
+def extract_words_and_coordinates(analyze_result):
+    for page in analyze_result.pages:
+        for word in page.words:
+            word_text = word.content
+            x1, y1 = word.polygon[0]
+            x2, y2 = word.polygon[1]
+            x3, y3 = word.polygon[2]
+            x4, y4 = word.polygon[3]
+            data.append([word_text, x1, y1, x2, y2, x3, y3, x4, y4])
+    return data
 
 
 
@@ -209,6 +233,9 @@ selected_example = st.selectbox("Choose from the example ballot papers",
 uploaded_file = st.file_uploader("Or upload a new document",
                                  type=["pdf", "jpg", "png"])
 
+google_sheet_url = "https://docs.google.com/spreadsheets/d/18ebESsCRhphoTDL8PPboZM70nvXFL-wo-fMg0OA_t-k/edit?usp=sharing"
+st.markdown(f"<a href='{google_sheet_url}' target='_blank'><button style='color: black; background-color: #0F9D58; border: none; padding: 10px 20px; text-align: center; display: inline-block; font-size: 16px; margin: 4px 2px; cursor: pointer; border-radius: 12px;'>Open Google Sheet</button></a>", unsafe_allow_html=True)
+
 if uploaded_file or selected_example:
     image_contents = load_image(
         uploaded_file if uploaded_file else selected_example)
@@ -222,6 +249,7 @@ if uploaded_file or selected_example:
             with st.spinner(f"Analyzing page {idx+1} in {display_name}..."):
                 try:
                     azure_result = analyze_document(content)
+                    data += extract_words_and_coordinates(azure_result)
                 except HttpResponseError as err:
                     st.error(f"Failed to analyze page {idx+1} in document: {err.response.reason}")
 
@@ -248,18 +276,25 @@ if uploaded_file or selected_example:
 
                 lines = ""
                 line_counter = 1
-        # for page in azure_result.pages:
-        #     for line in page.lines:
-        #         #     st.write(line.content)
-        #         lines += str(line_counter) + ": " + line.content + "\n"
-        #         line_counter += 1
+            # for page in azure_result.pages:
+            #     for line in page.lines:
+            #         #     st.write(line.content)
+            #         lines += str(line_counter) + ": " + line.content + "\n"
+            #         line_counter += 1
 
-        # groupings = gpt_groupings(content, lines)
-        # st.header("GPT Groupings")
-        # st.write(groupings['chois'][0]['message']['content'])
-        # st.write(lines)
-        for page in azure_result.pages:
-            for line in page.lines:
-                st.write(line.content)
+            # groupings = gpt_groupings(content, lines)
+            # st.header("GPT Groupings")
+            # st.write(groupings['chois'][0]['message']['content'])
+            # st.write(lines)
+            # for page in azure_result.pages:
+                # for line in page.lines:
+                    # st.write(line.content)
+                    # data.append([line.content])
 
-    st.write("----------------------------------------")
+    # st.write("----------------------------------------")
+
+    # Write data to Google Sheets
+    range = f'A1:I{len(data)}'
+    sheet.update(range, data)
+
+

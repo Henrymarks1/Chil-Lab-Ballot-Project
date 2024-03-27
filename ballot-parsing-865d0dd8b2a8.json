@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "ballot-parsing",
+  "private_key_id": "865d0dd8b2a82f808f420aba6a9ea40a6e81755d",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQD0RUzUPZ/friHL\na1ln+oUswu0+9xIflOEh7sXxqWO+JS7P9AqDaWtLIcj4WwW4TzJs4GTkR8MASCBj\n6ams0DsJjPGZgAgbLlNd7AgtRRG5toykfAb/RH4rmYlsypBweoJUxT+kn18HcqEl\nVjQ9I3vVXEuA1nnCjKfTghuXFwrqyXKtjwJR78WHn6NYXRWQAxh4QBaCfYsKq59t\n2CIlx6IXl+H/XcdXcIMTGjvS+JCEdDublgMM5V+nM7qMa9+UOGurGomnez66lHjS\nQJUlrx/jLSjKq7uTmpZo6m8LvujZWNMTjFqmPH9EutiMXIUFzKw/Ibsl0Tlo7JO+\n7Qu+ioGjAgMBAAECggEABdh522xp063iMZWIlGsTuYTb0nX/nvYAxq0uNsnNB+fN\ndnz4PydDL49REENRYDmP0wGgAZ7Ql3tZQDrao0kDj4dzKYq9eTUMPrDNHrjKx99T\n/02zG70wqTUpokHLBGKkcIgvCKW5JvZnhGkCESuikvIzIcqt4o5b3qr8EQs2n+In\nlQ8EZc/pAzLl/UNkXrLn8YviVDZFpqL/LUTYSXtpJ/FFkbMm8qV0t1LM8cgJywQr\nM4tQqNeQrZp4i9dm7bl+kBVTR0IJw5DYmHH/lt0TwhC1XrzO+xY9wu2/ZWtYcTYj\nCFp8TjHqIG+4O28KT5WMuOoM2pBjDgiUJV1gn7YOmQKBgQD9X3ntAKx65owxaGzk\n7PeIoNnlhcikpaeeq9GcRFIGUeQSKAjDAcgGIAcfaKMdWMUxiGtF2mjpXgxknBl1\nQEuxJlBqnWrbedTwNm17DsfDuibF0zH8L5tXgjkY8jVTZhMmJzfkDoSch8zcfUHS\ncQ4vNrgM6rIGKB1SN7rhLl0lqwKBgQD2zan0VpZkP/hCnBTn/0hFasmPMGYDYenb\nzTn0OlQB8Sr3bbjsZXLd5Xo0QbFbxgKxdy0tcv6cII40CpA/EzSnU6QijvYvnvKk\n839uILqCvY5sqg2Pyq2NLR/J6vdglw2II98Em0v2dGNdYE/8krEHxV/1sc7HgCfB\nLoY4DM6r6QKBgQCEs0CUVEoBhEXgiqSdsU5jjHsSruLK+Me1Xp/FjDK5hKJCsB0G\npSQxsQyJ8q+baya8LoqgZyeTMeKjvu3Gbwo1ma98Zz3T/Rb9SERGsxME+7Xa3iXL\nwtNFHbrxyckMCOX2kYvAMapaoPU2dZPHt9aJ+8qhWTor506UBQQnc7TtSQKBgBzC\niJyNfob+IVr5v0HtsKlOMWC7PhgEz/CqMKeyKFn1lZExuwvpIoKTHDN8uEM+hs/R\nWHVkYiEldgzAcmC3Rzp8d7MDP9L6zcHFEkNuEu3rUu58vonUD3dVG9A2zk72K0CD\nFZj+09JLa8zUzV1cZr7GFFGYP8VlvLw5RLDBZVAJAoGBAJEMOjpEfrP+A7gFOZFY\nJFsjmvfB9/ZwhIXRmLLuiXBEIZjaM+OmtwVNPo4IB1rpCEelbfXbpjCBkGNlOvSB\ndRb1Odn9wIXRcAl9kG6wiKLtZ/Nv5EiCdjIA+aQf0BM7JAb/+KX/H5H176BIa7zL\nVrYfE5W76KjOzTY96rBAA1r3\n-----END PRIVATE KEY-----\n",
+  "client_email": "ballot-parsing-service-account@ballot-parsing.iam.gserviceaccount.com",
+  "client_id": "112757951771250627637",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/ballot-parsing-service-account%40ballot-parsing.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

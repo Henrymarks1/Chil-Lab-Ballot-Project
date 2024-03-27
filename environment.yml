@@ -1,0 +1,20 @@
+name: ballotenv
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python
+  - pip
+  - pillow
+  - numpy
+  - streamlit
+  - azure-core
+  - requests
+  - gspread
+  - oauth2client
+  - pip:
+    - opencv-python
+    - pdf2image
+    - azure-ai-formrecognizer
+    - python-dotenv
+    - openai
