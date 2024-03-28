@@ -125,36 +125,53 @@ def analyze_document_opencv(image_bytes, min_horizontal_length=200, min_vertical
     nparr = np.frombuffer(image_bytes, np.uint8)
     image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     
-    # Convert to grayscale and apply Gaussian blur
+    # Convert to grayscale and apply threshold to get binary image
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
 
     # Kernel for horizontal lines
-    horizontal_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (15,1))
+    horizontal_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (15, 1))
     detected_horizontal_lines = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, horizontal_kernel, iterations=2)
 
     cnts_horizontal = cv2.findContours(detected_horizontal_lines, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     cnts_horizontal = cnts_horizontal[0] if len(cnts_horizontal) == 2 else cnts_horizontal[1]
-
-    for c in cnts_horizontal:
-        x, y, w, h = cv2.boundingRect(c)
-        if w >= min_horizontal_length:  # Check if the width of the bounding box meets minimum length requirement
-            cv2.drawContours(image, [c], -1, (255, 255, 0), 3)
     
     # Kernel for vertical lines
-    vertical_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1,15))
+    vertical_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 15))
     detected_vertical_lines = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, vertical_kernel, iterations=2)
 
     cnts_vertical = cv2.findContours(detected_vertical_lines, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     cnts_vertical = cnts_vertical[0] if len(cnts_vertical) == 2 else cnts_vertical[1]
+    
+    # Create empty images for horizontal and vertical lines
+    horizontal_lines_image = np.zeros_like(thresh)
+    vertical_lines_image = np.zeros_like(thresh)
 
+    # Draw horizontal lines on an empty image based on contours
+    for c in cnts_horizontal:
+        x, y, w, h = cv2.boundingRect(c)
+        if w >= min_horizontal_length:
+            cv2.drawContours(horizontal_lines_image, [c], -1, 255, -1)
+
+    # Draw vertical lines on an empty image based on contours
     for c in cnts_vertical:
         x, y, w, h = cv2.boundingRect(c)
-        if h >= min_vertical_length:  # Check if the height of the bounding box meets minimum length requirement
-            cv2.drawContours(image, [c], -1, (255,36,12), 3)
-    
-    return image, cnts_horizontal, cnts_vertical
+        if h >= min_vertical_length:
+            cv2.drawContours(vertical_lines_image, [c], -1, 255, -1)
 
+    # Find intersections between the horizontal and vertical lines
+    intersections = cv2.bitwise_and(horizontal_lines_image, vertical_lines_image)
+
+    # Find contours which are likely to be boxes in the intersections image
+    contours, _ = cv2.findContours(intersections, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    
+    # Draw the boxes on the original image
+    for c in contours:
+        x, y, w, h = cv2.boundingRect(c)
+        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+    
+    # Return the original image with boxes drawn on it
+    return image
 
 def extract_words_and_coordinates(analyze_result):
     for page in analyze_result.pages:
@@ -260,7 +277,7 @@ if uploaded_file or selected_example:
                     st.error(f"Failed to analyze page {idx+1} in document: {err.response.reason}")
 
             # Use OpenCV to find and draw contours
-            opencv_image, cnts_horizontal, cnts_vertical = analyze_document_opencv(content)
+            opencv_image = analyze_document_opencv(content)
 
 
             #filter contours -> Input contours, Output: A list of boxes of points [[[p1], [p2], [p3], [p4]], [[p1], [p2], [p3], [p4]]] 
@@ -275,7 +292,7 @@ if uploaded_file or selected_example:
                 combined_image = cv2.addWeighted(annotated_image_np, 0.5, opencv_image, 0.5, 0)
 
                 # Convert back to PIL Image to display in Streamlit
-                combined_image_pil = Image.fromarray(combined_image)
+                combined_image_pil = Image.fromarray(opencv_image)
                 img_buf = BytesIO()
                 combined_image_pil.save(img_buf, format="PNG")
                 st.image(img_buf, caption=f"Combined Annotated Image for page {idx+1}", use_column_width=True)
