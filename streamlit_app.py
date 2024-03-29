@@ -121,7 +121,7 @@ def filter_contours(contour):
 
 
 def analyze_document_opencv(image_bytes, min_horizontal_length=200, min_vertical_length=200):
-    # Convert bytes to numpy array
+    # Convert bytes to numpy array and decode to image
     nparr = np.frombuffer(image_bytes, np.uint8)
     image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     
@@ -129,48 +129,43 @@ def analyze_document_opencv(image_bytes, min_horizontal_length=200, min_vertical
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
 
-    # Kernel for horizontal lines
+    # Prepare kernels for detecting horizontal and vertical lines
     horizontal_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (15, 1))
     detected_horizontal_lines = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, horizontal_kernel, iterations=2)
 
-    cnts_horizontal = cv2.findContours(detected_horizontal_lines, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    cnts_horizontal = cnts_horizontal[0] if len(cnts_horizontal) == 2 else cnts_horizontal[1]
-    
-    # Kernel for vertical lines
     vertical_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 15))
     detected_vertical_lines = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, vertical_kernel, iterations=2)
 
+    # Find contours for horizontal and vertical lines
+    cnts_horizontal = cv2.findContours(detected_horizontal_lines, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    cnts_horizontal = cnts_horizontal[0] if len(cnts_horizontal) == 2 else cnts_horizontal[1]
+
     cnts_vertical = cv2.findContours(detected_vertical_lines, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     cnts_vertical = cnts_vertical[0] if len(cnts_vertical) == 2 else cnts_vertical[1]
-    
-    # Create empty images for horizontal and vertical lines
-    horizontal_lines_image = np.zeros_like(thresh)
-    vertical_lines_image = np.zeros_like(thresh)
 
-    # Draw horizontal lines on an empty image based on contours
+    # Draw detected horizontal and vertical lines on the original image
     for c in cnts_horizontal:
         x, y, w, h = cv2.boundingRect(c)
-        if w >= min_horizontal_length:
-            cv2.drawContours(horizontal_lines_image, [c], -1, 255, -1)
+        if w > min_horizontal_length:
+            cv2.rectangle(image, (x, y), (x + w, y + h), (255, 0, 0), 2)  # Blue for horizontal lines
 
-    # Draw vertical lines on an empty image based on contours
     for c in cnts_vertical:
         x, y, w, h = cv2.boundingRect(c)
-        if h >= min_vertical_length:
-            cv2.drawContours(vertical_lines_image, [c], -1, 255, -1)
+        if h > min_vertical_length:
+            cv2.rectangle(image, (x, y), (x + w, y + h), (255, 0, 0), 2)  # Blue for vertical lines
 
-    # Find intersections between the horizontal and vertical lines
-    intersections = cv2.bitwise_and(horizontal_lines_image, vertical_lines_image)
+    # Combine horizontal and vertical lines images to find potential intersections (rectangles)
+    combined_lines_image = cv2.bitwise_or(detected_horizontal_lines, detected_vertical_lines)
 
-    # Find contours which are likely to be boxes in the intersections image
-    contours, _ = cv2.findContours(intersections, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-    
-    # Draw the boxes on the original image
-    for c in contours:
-        x, y, w, h = cv2.boundingRect(c)
-        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
-    
-    # Return the original image with boxes drawn on it
+    # Find contours in the combined lines image to identify rectangles
+    contours, _ = cv2.findContours(combined_lines_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    # Draw the contours that likely represent rectangles on the original image
+    for contour in contours:
+        x, y, w, h = cv2.boundingRect(contour)
+        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)  # Green for boxes
+
+    # Return the original image with lines (blue) and rectangles (green) drawn on it
     return image
 
 def extract_words_and_coordinates(analyze_result):
