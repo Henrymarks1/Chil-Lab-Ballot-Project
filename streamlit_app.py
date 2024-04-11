@@ -8,7 +8,7 @@ from PIL import Image
 
 ##function imports
 from utility.azure_utility import analyze_document, display_annotated_image
-from utility.google_sheets_utlity import extract_words_and_coordinates, write_excel
+# from utility.google_sheets_utlity import extract_words_and_coordinates, write_excel
 from utility.image_utility import load_example_images, load_image
 from utility.open_cv_utility import analyze_document_opencv
 
@@ -45,7 +45,7 @@ if uploaded_file or selected_example:
             with st.spinner(f"Analyzing page {idx+1} in {display_name}..."):
                 try:
                     azure_result = analyze_document(content)
-                    extract_words_and_coordinates(azure_result)
+                    # extract_words_and_coordinates(azure_result)
                 except HttpResponseError as err:
                     st.error(f"Failed to analyze page {idx+1} in document: {err.response.reason}")
 
@@ -70,6 +70,6 @@ if uploaded_file or selected_example:
                 line_counter = 1
     
     #Write the data to an excel sheet
-    write_excel()
+    # write_excel()
 
 
