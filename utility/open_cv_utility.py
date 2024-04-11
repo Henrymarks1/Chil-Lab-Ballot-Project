@@ -46,7 +46,7 @@ Outputs: The image with the boxes detected and drawn
 """
 def open_cv_boxes(image, thresh, min_horizontal_length=50, min_vertical_length=50):
     # Find contours in the thresholded image
-    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     rectanges = []
 
     # Loop through the contours to draw rectangles
