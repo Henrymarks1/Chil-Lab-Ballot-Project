@@ -7,6 +7,8 @@ Inputs: image, an image. thresh, the thresh
 Outputs: The image with the lines detected and drawn
 """
 def open_cv_lines(image, thresh, min_horizontal_length=150, min_vertical_length=150):
+    horriz_lines = []
+    vertical_lines = []
     horizontal_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (15, 1))
     detected_horizontal_lines = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, horizontal_kernel, iterations=2)
 
@@ -25,13 +27,16 @@ def open_cv_lines(image, thresh, min_horizontal_length=150, min_vertical_length=
         x, y, w, h = cv2.boundingRect(c)
         if w > min_horizontal_length:
             cv2.rectangle(image, (x, y), (x + w, y + h), (255, 0, 0), 2)  # Blue for horizontal lines
+            horriz_lines.append((x, y, w, h))
+
 
     for c in cnts_vertical:
         x, y, w, h = cv2.boundingRect(c)
         if h > min_vertical_length:
             cv2.rectangle(image, (x, y), (x + w, y + h), (0, 0, 255), 2)  # Blue for vertical lines
+            vertical_lines.append((x, y, w, h))
     
-    return image
+    return image, horriz_lines, vertical_lines
 
 
 """
@@ -42,6 +47,7 @@ Outputs: The image with the boxes detected and drawn
 def open_cv_boxes(image, thresh, min_horizontal_length=50, min_vertical_length=50):
     # Find contours in the thresholded image
     contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    rectanges = []
 
     # Loop through the contours to draw rectangles
     for contour in contours:
@@ -52,9 +58,10 @@ def open_cv_boxes(image, thresh, min_horizontal_length=50, min_vertical_length=5
         if w > min_horizontal_length and h > min_vertical_length:
             # Draw a rectangle around the contour
             cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            rectanges.append((x,y,w,h))
 
     # Return the original image with rectangles drawn on it
-    return image
+    return image, rectanges
 
 """
 Code to add contrast to the images to make faight lines stick out
@@ -93,6 +100,6 @@ def analyze_document_opencv(image_bytes):
     thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
     
     # Return the original image with lines (blue) and rectangles (green) drawn on it
-    image_lines = open_cv_lines(enhansed_image, thresh)
-    image_combined = open_cv_boxes(image_lines, thresh)
-    return image_combined
+    image_lines, horriz_lines, vertical_lines = open_cv_lines(enhansed_image, thresh)
+    image_combined, rectangles = open_cv_boxes(image_lines, thresh)
+    return image_combined, rectangles, (horriz_lines, vertical_lines)

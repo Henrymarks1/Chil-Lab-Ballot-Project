@@ -50,7 +50,7 @@ if uploaded_file or selected_example:
                     st.error(f"Failed to analyze page {idx+1} in document: {err.response.reason}")
 
             # Use OpenCV to find and draw contours
-            opencv_image = analyze_document_opencv(content)
+            opencv_image, boxes, lines = analyze_document_opencv(content)
         
             # Display Azure's annotated image
             with st.spinner(f"Preparing annotated image for page {idx+1}..."):
@@ -61,7 +61,7 @@ if uploaded_file or selected_example:
                 combined_image = cv2.addWeighted(annotated_image_np, 0.5, opencv_image, 0.5, 0)
 
                 # Convert back to PIL Image to display in Streamlit
-                combined_image_pil = Image.fromarray(opencv_image)
+                combined_image_pil = Image.fromarray(combined_image)
                 img_buf = BytesIO()
                 combined_image_pil.save(img_buf, format="PNG")
                 st.image(img_buf, caption=f"Combined Annotated Image for page {idx+1}", use_column_width=True)
