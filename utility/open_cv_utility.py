@@ -2,9 +2,19 @@ import cv2
 import numpy as np
 
 """
-Detects lines using the OpenCV library
-Inputs: image, an image. thresh, the thresh
-Outputs: The image with the lines detected and drawn
+Purpose: Detects horizontal and vertical lines in an image (in this case, PDF)
+using the OpenCV library. The function modifies the input image in-place by
+drawing lines on it.
+
+Inputs: 
+- image: the input image on which to detect lines. 
+- thresh: a pre-processed binary image (thresholded image)
+
+Outputs: 
+- image: the original image with detected horizontal and vertical lines drawn on it 
+- horriz_lines: a list of tuples where each tuple represents a detected horizontal line 
+- vertical_line: a list of tuples where each tuple represents a detected vertical line 
+
 """
 def open_cv_lines(image, thresh, min_horizontal_length=150, min_vertical_length=150):
     horriz_lines = []
@@ -40,9 +50,18 @@ def open_cv_lines(image, thresh, min_horizontal_length=150, min_vertical_length=
 
 
 """
-Detects boxes using the OpenCV library
-Inputs: image, an image. thresh, the thresh
-Outputs: The image with the boxes detected and drawn
+Purpose: Detects boxes in an image (in this case, PDF) using the OpenCV library.
+The function modifies the input image in-place by drawing boxes on it.
+
+Inputs: 
+- image: the input image on which to detect lines. 
+- thresh: a pre-processed binary image (thresholded image)
+
+Outputs: 
+- image: the original image with detected horizontal and vertical lines drawn on it
+- horriz_lines: a list of tuples where each tuple represents a detected horizontal line 
+- vertical_line: a list of tuples where each tuple represents a detected vertical line 
+
 """
 def open_cv_boxes(image, thresh, min_horizontal_length=50, min_vertical_length=50):
     # Find contours in the thresholded image
@@ -64,9 +83,15 @@ def open_cv_boxes(image, thresh, min_horizontal_length=50, min_vertical_length=5
     return image, rectanges
 
 """
-Code to add contrast to the images to make faight lines stick out
-Inputs: Image, the image we are working with
-Outputs: An image with added contrast 
+Purpose: Intensifies the contrast of the image to attempt to detect faint lines
+and other relevant components of the PDF file.
+
+Inputs: 
+- image: the input image on which to increase contrast.
+
+Outputs: 
+- image: the original image with intensified contrast.
+
 """
 def contrast_image(image):
     lab= cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
@@ -86,20 +111,27 @@ def contrast_image(image):
 
 
 """
-Detects lines and boxes given image bytes
-Inputs: image_bytes, the bytes of the image
-Outputs: The image with lines and boxes drawn with the locations
+Purpose: Detects lines and boxes in an image (in this case, PDF) using the
+OpenCV library. The function modifies the input image in-place by drawing
+detected lines and boxes on it.
+
+Inputs: 
+- image_bytes: the bytes of the input image.
+
+Outputs: 
+- image: the original image with detected lines and boxes drawn on it.
+
 """
 def analyze_document_opencv(image_bytes):
     nparr = np.frombuffer(image_bytes, np.uint8)
     image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-    enhansed_image = contrast_image(image)
+    enhanced_image = contrast_image(image)
     # Convert to grayscale and apply threshold to get binary image
-    gray = cv2.cvtColor(enhansed_image, cv2.COLOR_BGR2GRAY)
+    gray = cv2.cvtColor(enhanced_image, cv2.COLOR_BGR2GRAY)
     thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
     
     # Return the original image with lines (blue) and rectangles (green) drawn on it
-    image_lines, horriz_lines, vertical_lines = open_cv_lines(enhansed_image, thresh)
+    image_lines, horriz_lines, vertical_lines = open_cv_lines(enhanced_image, thresh)
     image_combined, rectangles = open_cv_boxes(image_lines, thresh)
     return image_combined, rectangles, (horriz_lines, vertical_lines)
