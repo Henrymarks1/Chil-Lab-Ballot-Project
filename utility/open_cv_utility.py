@@ -45,13 +45,15 @@ def open_cv_lines(image, thresh, min_horizontal_length=150, min_vertical_length=
         if h > min_vertical_length:
             cv2.rectangle(image, (x, y), (x + w, y + h), (0, 0, 255), 2)  # Blue for vertical lines
             vertical_lines.append((x, y, w, h))
+    
+    # Below is the code for dotted/faint lines...
 
     img_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     _, img_thresh = cv2.threshold(img_gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
 
     # Experiment with different kernel sizes to enhance the dotted lines
-    kernel1 = np.ones((2, 5), np.uint8)  # A smaller kernel may work better
-    kernel2 = np.ones((9, 9), np.uint8)  # A smaller kernel may work better
+    kernel1 = np.ones((2, 5), np.uint8)  # Experimented with a smaller kernel... may work better? Try more
+    kernel2 = np.ones((9, 9), np.uint8) 
 
     # Use the morphological gradient which is the difference between dilation and erosion
     # This can sometimes enhance the outline of the dots more effectively
@@ -60,7 +62,7 @@ def open_cv_lines(image, thresh, min_horizontal_length=150, min_vertical_length=
     # Apply a slight blur which can help to join the dots in the dotted lines
     img_blur = cv2.GaussianBlur(img_gradient, (3, 3), 0)
 
-    # Now apply Hough Lines again with adjusted parameters
+    # Apply Hough Lines again with adjusted parameters
     img_lines = cv2.HoughLinesP(img_blur, 10, np.pi/180, threshold=20, minLineLength=440, maxLineGap=15)
     
     # Draw detected dotted lines on the original image
