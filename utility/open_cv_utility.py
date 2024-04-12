@@ -134,4 +134,4 @@ def analyze_document_opencv(image_bytes):
     # Return the original image with lines (blue) and rectangles (green) drawn on it
     image_lines, horriz_lines, vertical_lines = open_cv_lines(enhanced_image, thresh)
     image_combined, rectangles = open_cv_boxes(image_lines, thresh)
-    return image_combined, rectangles, (horriz_lines, vertical_lines)
+    return image_combined, rectangles, horriz_lines, vertical_lines

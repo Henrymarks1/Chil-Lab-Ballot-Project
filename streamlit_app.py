@@ -5,10 +5,11 @@ import numpy as np
 import gspread
 from io import BytesIO
 from PIL import Image
+import pandas as pd
 
 ##function imports
 from utility.azure_utility import analyze_document, display_annotated_image
-# from utility.google_sheets_utlity import extract_words_and_coordinates, write_excel
+from utility.word_extraction_utlity import create_downloadable_dataframe, extract_words_and_coordinates
 from utility.image_utility import load_example_images, load_image
 from utility.open_cv_utility import analyze_document_opencv
 
@@ -28,10 +29,10 @@ selected_example = st.selectbox("Choose from the example ballot papers",
 # Upload a new document
 uploaded_file = st.file_uploader("Or upload a new document",
                                  type=["pdf", "jpg", "png"])
-# The google sheet
-google_sheet_url = "https://docs.google.com/spreadsheets/d/18ebESsCRhphoTDL8PPboZM70nvXFL-wo-fMg0OA_t-k/edit?usp=sharing"
-st.markdown(f"<a href='{google_sheet_url}' target='_blank'><button style='color: black; background-color: #0F9D58; border: none; padding: 10px 20px; text-align: center; display: inline-block; font-size: 16px; margin: 4px 2px; cursor: pointer; border-radius: 12px;'>Open Google Sheet</button></a>", unsafe_allow_html=True)
-
+word_locations = []
+all_boxes = []
+all_horriz_lines = []
+all_vert_lines = []
 if uploaded_file or selected_example:
     image_contents = load_image(
         uploaded_file if uploaded_file else selected_example)
@@ -45,13 +46,15 @@ if uploaded_file or selected_example:
             with st.spinner(f"Analyzing page {idx+1} in {display_name}..."):
                 try:
                     azure_result = analyze_document(content)
-                    # extract_words_and_coordinates(azure_result)
+                    word_locations = extract_words_and_coordinates(azure_result)
                 except HttpResponseError as err:
                     st.error(f"Failed to analyze page {idx+1} in document: {err.response.reason}")
 
             # Use OpenCV to find and draw contours
-            opencv_image, boxes, lines = analyze_document_opencv(content)
-        
+            opencv_image, boxes, horriz_lines, vertical_lines = analyze_document_opencv(content)
+            all_horriz_lines.extend(horriz_lines)
+            all_vert_lines.extend(vertical_lines)
+            all_boxes.extend(boxes)
             # Display Azure's annotated image
             with st.spinner(f"Preparing annotated image for page {idx+1}..."):
                 annotated_image = display_annotated_image(content, azure_result)
@@ -64,12 +67,22 @@ if uploaded_file or selected_example:
                 combined_image_pil = Image.fromarray(combined_image)
                 img_buf = BytesIO()
                 combined_image_pil.save(img_buf, format="PNG")
-                st.image(img_buf, caption=f"Combined Annotated Image for page {idx+1}", use_column_width=True)
 
                 lines = ""
                 line_counter = 1
-    
+
+                st.image(img_buf, caption=f"Combined Annotated Image for page {idx+1}", use_column_width=True)
+            
+        csv_data = create_downloadable_dataframe(word_locations, all_boxes, all_horriz_lines, all_vert_lines)
+        
+        print(lines)
+        st.download_button(
+            label="Download Data as CSV",
+            data=csv_data,
+            file_name="processed_data.csv",
+            mime='text/csv'
+        )
+
+
     #Write the data to an excel sheet
     # write_excel()
-
-
