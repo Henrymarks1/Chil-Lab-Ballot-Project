@@ -46,30 +46,30 @@ def open_cv_lines(image, thresh, min_horizontal_length=150, min_vertical_length=
             cv2.rectangle(image, (x, y), (x + w, y + h), (0, 0, 255), 2)  # Blue for vertical lines
             vertical_lines.append((x, y, w, h))
     
-    # Below is the code for dotted/faint lines...
+    # # Below is the code for dotted/faint lines...
 
-    img_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    _, img_thresh = cv2.threshold(img_gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+    # img_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    # _, img_thresh = cv2.threshold(img_gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
 
-    # Experiment with different kernel sizes to enhance the dotted lines
-    kernel1 = np.ones((2, 5), np.uint8)  # Experimented with a smaller kernel... may work better? Try more
-    kernel2 = np.ones((9, 9), np.uint8) 
+    # # Experiment with different kernel sizes to enhance the dotted lines
+    # kernel1 = np.ones((2, 5), np.uint8)  # Experimented with a smaller kernel... may work better? Try more
+    # kernel2 = np.ones((9, 9), np.uint8) 
 
-    # Use the morphological gradient which is the difference between dilation and erosion
-    # This can sometimes enhance the outline of the dots more effectively
-    img_gradient = cv2.morphologyEx(img_thresh, cv2.MORPH_GRADIENT, kernel1)
+    # # Use the morphological gradient which is the difference between dilation and erosion
+    # # This can sometimes enhance the outline of the dots more effectively
+    # img_gradient = cv2.morphologyEx(img_thresh, cv2.MORPH_GRADIENT, kernel1)
 
-    # Apply a slight blur which can help to join the dots in the dotted lines
-    img_blur = cv2.GaussianBlur(img_gradient, (3, 3), 0)
+    # # Apply a slight blur which can help to join the dots in the dotted lines
+    # img_blur = cv2.GaussianBlur(img_gradient, (3, 3), 0)
 
-    # Apply Hough Lines again with adjusted parameters
-    img_lines = cv2.HoughLinesP(img_blur, 10, np.pi/180, threshold=20, minLineLength=440, maxLineGap=15)
+    # # Apply Hough Lines again with adjusted parameters
+    # img_lines = cv2.HoughLinesP(img_blur, 10, np.pi/180, threshold=20, minLineLength=440, maxLineGap=15)
     
-    # Draw detected dotted lines on the original image
-    if img_lines is not None:
-        for line in img_lines:
-            for x1, y1, x2, y2 in line:
-                cv2.line(image, (x1, y1), (x2, y2), (0, 255, 0), 2)  # Green for dotted lines
+    # # Draw detected dotted lines on the original image
+    # if img_lines is not None:
+    #     for line in img_lines:
+    #         for x1, y1, x2, y2 in line:
+    #             cv2.line(image, (x1, y1), (x2, y2), (0, 255, 0), 2)  # Green for dotted lines
     
     # Return the updated image with both solid and dotted lines drawn
     return image, horriz_lines, vertical_lines

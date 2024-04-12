@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 from azure.core.credentials import AzureKeyCredential
 from azure.ai.formrecognizer import DocumentAnalysisClient
-from azure.core.exceptions import HttpResponseError
 import streamlit as st
 
 
