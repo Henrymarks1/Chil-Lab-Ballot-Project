@@ -7,5 +7,3 @@ azure-core
 azure.ai.formrecognizer
 requests
 python-dotenv
-gspread
-oauth2client
