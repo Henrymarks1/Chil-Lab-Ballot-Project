@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from pyzbar.pyzbar import decode
 
 """
 Purpose: Detects horizontal and vertical lines in an image (in this case, PDF)
@@ -137,6 +138,7 @@ Outputs:
 - image: the original image with detected lines and boxes drawn on it.
 
 """
+
 def analyze_document_opencv(image_bytes):
     nparr = np.frombuffer(image_bytes, np.uint8)
     image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
@@ -152,17 +154,22 @@ def analyze_document_opencv(image_bytes):
     filtered_horriz_lines = filter_lines(horriz_lines, rectangles)
     filtered_vertical_lines = filter_lines(vertical_lines, rectangles)
 
+    # Detect barcodes
+    #(barcodes,
+    image_with_barcodes = detect_barcodes(enhanced_image)
+
     # Draw the filtered lines and boxes on the image
     for x, y, w, h in filtered_horriz_lines:
-        cv2.rectangle(enhanced_image, (x, y), (x + w, y + h), (255, 0, 0), 2)
+        cv2.rectangle(image_with_barcodes, (x, y), (x + w, y + h), (255, 0, 0), 2)
 
     for x, y, w, h in filtered_vertical_lines:
-        cv2.rectangle(enhanced_image, (x, y), (x + w, y + h), (0, 0, 255), 2)
+        cv2.rectangle(image_with_barcodes, (x, y), (x + w, y + h), (0, 0, 255), 2)
 
     for x, y, w, h in rectangles:
-        cv2.rectangle(enhanced_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        cv2.rectangle(image_with_barcodes, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
-    return enhanced_image, rectangles, filtered_horriz_lines, filtered_vertical_lines
+    return image_with_barcodes, rectangles, filtered_horriz_lines, filtered_vertical_lines #, barcodes
+
 
 """
 Purpose: Detects if the lines intersect with the boxes
@@ -197,7 +204,7 @@ def line_intersects_box(line, box):
 
 
 """
-Purpose: 
+Purpose: finds 
 Inputs: 
  - line: a list of tuples where each tuple represents a detected horizontal or vertical line
  - box:  a list of tuples where each tuple represents each line in a rectangle
@@ -215,3 +222,40 @@ def filter_lines(lines, boxes):
     return filtered_lines
 
 
+"""
+Detect barcodes in the given image.
+
+Inputs: 
+image (numpy.ndarray): The input image.
+
+Outputs: 
+list: A list of dictionaries containing barcode data and location.
+"""
+
+def detect_barcodes(image):
+
+    #turns image into grayscale version
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    #imported function decode detects barcodes in grayscale images
+    barcodes = decode(gray)
+
+    results = []
+    #loops over detected barcodes and gets location of each barcode. Locations are added to the results list
+    for barcode in barcodes:
+        (x, y, w, h) = barcode.rect
+        barcode_info = {
+            #the following lines are used for decoding the data types of the detected barcodes
+            #'data': barcode.data.decode('utf-8'),
+            #'type': barcode.type,
+            'location': (x, y, w, h)
+        }
+        results.append(barcode_info)
+
+        # Draw bounding box of every barcode
+        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+        # Put barcode data on the image (data and type). Not needed for current purposes
+        #cv2.putText(image, barcode_info['data'], (x, y - 10),
+        #            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+
+    return image
