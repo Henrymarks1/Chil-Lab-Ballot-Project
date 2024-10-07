@@ -39,3 +39,5 @@ def display_annotated_image(image_bytes, analyze_result):
             image = cv2.polylines(image, [selection_pts], True, (0, 0, 255), 2)
 
     return image
+
+
