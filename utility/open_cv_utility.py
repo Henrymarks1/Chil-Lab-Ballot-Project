@@ -70,7 +70,7 @@ def open_cv_lines(image, thresh, min_horizontal_length=150, min_vertical_length=
     #             cv2.line(image, (x1, y1), (x2, y2), (0, 255, 0), 2)  # Green for dotted lines
     
     # Return the updated image with both solid and dotted lines drawn
-    return image, horriz_lines, vertical_lines
+    #return image, horriz_lines, vertical_lines
 
 """
 Purpose: Detects boxes in an image (in this case, PDF) using the OpenCV library.
@@ -142,19 +142,36 @@ def analyze_document_opencv(image_bytes):
     image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
     enhanced_image = contrast_image(image)
-    # Convert to grayscale and apply threshold to get binary image
     gray = cv2.cvtColor(enhanced_image, cv2.COLOR_BGR2GRAY)
     thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
-    
-    # Return the original image with lines (blue) and rectangles (green) drawn on it
-    image_lines, horriz_lines, vertical_lines = open_cv_lines(enhanced_image, thresh)
-    image_combined, rectangles = open_cv_boxes(image_lines, thresh)
-    return image_combined, rectangles, horriz_lines, vertical_lines
 
+    horriz_lines, vertical_lines = open_cv_lines(enhanced_image, thresh)
+    rectangles = open_cv_boxes(enhanced_image, thresh)
 
+    # Filter out lines that intersect with boxes
+    filtered_horriz_lines = filter_lines(horriz_lines, rectangles)
+    filtered_vertical_lines = filter_lines(vertical_lines, rectangles)
+
+    # Draw the filtered lines and boxes on the image
+    for x, y, w, h in filtered_horriz_lines:
+        cv2.rectangle(enhanced_image, (x, y), (x + w, y + h), (255, 0, 0), 2)
+
+    for x, y, w, h in filtered_vertical_lines:
+        cv2.rectangle(enhanced_image, (x, y), (x + w, y + h), (0, 0, 255), 2)
+
+    for x, y, w, h in rectangles:
+        cv2.rectangle(enhanced_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+    return enhanced_image, rectangles, filtered_horriz_lines, filtered_vertical_lines
 
 """
-NEW STUFF I ADDED
+Purpose: Detects if the lines intersect with the boxes
+Inputs: 
+ - line: a vertical or horizontal line represented by a tuple 
+ - box:  a list of tuples that represent a rectangle
+
+Outputs: 
+- boolean: true if the line intersects, false otherwise
 
 """
 
@@ -178,6 +195,18 @@ def line_intersects_box(line, box):
 
     return False
 
+
+"""
+Purpose: 
+Inputs: 
+ - line: a list of tuples where each tuple represents a detected horizontal or vertical line
+ - box:  a list of tuples where each tuple represents each line in a rectangle
+
+Outputs: 
+- filtered_lines: returns a list of filtered lines (lines that are double counted)
+
+"""
+
 def filter_lines(lines, boxes):
     filtered_lines = []
     for line in lines:
@@ -185,31 +214,4 @@ def filter_lines(lines, boxes):
             filtered_lines.append(line)
     return filtered_lines
 
-
-def analyze_document_opencv(image_bytes):
-    nparr = np.frombuffer(image_bytes, np.uint8)
-    image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-
-    enhanced_image = contrast_image(image)
-    gray = cv2.cvtColor(enhanced_image, cv2.COLOR_BGR2GRAY)
-    thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
-
-    horriz_lines, vertical_lines = open_cv_lines(enhanced_image, thresh)
-    rectangles = open_cv_boxes(enhanced_image, thresh)
-
-    # Filter out lines that intersect with boxes
-    filtered_horriz_lines = filter_lines(horriz_lines, rectangles)
-    filtered_vertical_lines = filter_lines(vertical_lines, rectangles)
-
-    # Draw the filtered lines and boxes on the image
-    for x, y, w, h in filtered_horriz_lines:
-        cv2.rectangle(enhanced_image, (x, y), (x + w, y + h), (255, 0, 0), 2)
-
-    for x, y, w, h in filtered_vertical_lines:
-        cv2.rectangle(enhanced_image, (x, y), (x + w, y + h), (0, 0, 255), 2)
-
-    for x, y, w, h in rectangles:
-        cv2.rectangle(enhanced_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
-
-    return enhanced_image, rectangles, filtered_horriz_lines, filtered_vertical_lines
 
